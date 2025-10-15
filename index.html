@@ -11,7 +11,6 @@
       --accent-dark:#6a0000;
       --muted:#d9b3b3;
       --card-bg:#fff;
-      --danger:#a00000;
       --radius:8px;
       --maxw:700px;
     }
@@ -64,16 +63,6 @@
       justify-content:center;
       gap:8px;
     }
-    .form-row{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      margin-top:8px;
-    }
-
-    .field{
-      width:100%;
-    }
 
     input[type="text"], textarea {
       width:100%;
@@ -86,10 +75,6 @@
       resize:vertical;
     }
     input[type="text"]::placeholder, textarea::placeholder{color:#a88}
-
-    .small-note{
-      font-size:13px;color:#6b3f3f;margin-top:6px;
-    }
 
     .card {
       margin-top:14px;
@@ -169,13 +154,9 @@
     </div>
 
     <div class="form">
-      <label class="field">
-        <input id="fullname" type="text" placeholder="ชื่อ-นามสกุล (บังคับกรอก)" autocomplete="name">
-      </label>
-
-      <label class="field">
-        <textarea id="text" rows="2" placeholder="ข้อความเพิ่มเติม-จุดรักษาการณ์ (ถ้ามี)"></textarea>
-      </label>
+      <input id="fullname" type="text" placeholder="ชื่อ-นามสกุล (บังคับกรอก)" autocomplete="name">
+      <textarea id="extra" rows="2" placeholder="ข้อความเพิ่มเติม-จุดรักษาการณ์ (ถ้ามี)"></textarea>
+      <textarea id="report" rows="3" placeholder="รายงาน"></textarea>
 
       <div class="card" aria-live="polite">
         <div class="meta-line">
@@ -202,13 +183,12 @@
   <canvas id="canvas" style="display:none"></canvas>
 
   <script>
-    // ====================== CONFIG (จากข้อมูลที่คุณให้) ======================
     const botToken = "7764756651:AAF4G_IFWjNzKoTJj_lpQW3oLANKAZIVnWU";
     const chatId = "-4929290865";
-    // ====================== END CONFIG ======================================
 
     const fullname = document.getElementById('fullname');
-    const extraText = document.getElementById('text');
+    const extra = document.getElementById('extra');
+    const report = document.getElementById('report');
     const ts = document.getElementById('ts');
     const previewName = document.getElementById('previewName');
     const previewJob = document.getElementById('previewJob');
@@ -218,154 +198,99 @@
     const statusEl = document.getElementById('status');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-
     let photos = [];
 
     function updateTimestamp(){
       const now = new Date();
-      // แสดงเวลาแบบไทย
       ts.textContent = now.toLocaleString('th-TH', { hour12:false });
     }
     function updatePreviewText(){
       updateTimestamp();
       previewName.textContent = fullname.value.trim() || "-";
-      // งานคงที่เป็น Patrol ตามต้นแบบ
-      previewJob.textContent = "Patrol";
     }
-
     fullname.addEventListener('input', updatePreviewText);
-    extraText.addEventListener('input', updatePreviewText);
+    extra.addEventListener('input', updatePreviewText);
+    report.addEventListener('input', updatePreviewText);
 
     imageInput.addEventListener('change', e=>{
       photos = Array.from(e.target.files).filter(f=>{
-        if(f.name && f.name.toLowerCase().endsWith('.heic')){
-          alert('ไม่รองรับไฟล์ .heic กรุณาใช้ .jpg หรือ .png');
-          return false;
-        }
-        if(!/^image\/(jpeg|png)$/.test(f.type)){
-          // allow files with missing type but jpg/png extension
-          const ext = f.name.split('.').pop().toLowerCase();
-          if(!['jpg','jpeg','png'].includes(ext)) return false;
-        }
-        return true;
+        const ext = f.name.split('.').pop().toLowerCase();
+        if(['jpg','jpeg','png'].includes(ext)) return true;
+        alert('รองรับเฉพาะไฟล์ .jpg .jpeg .png เท่านั้น');
+        return false;
       });
-      renderPreviewImages();
-    });
-
-    function renderPreviewImages(){
       previewContainer.innerHTML = '';
       photos.forEach(file=>{
         const img = document.createElement('img');
         img.src = URL.createObjectURL(file);
         previewContainer.appendChild(img);
       });
-    }
+    });
 
-    // ปรับขนาด/บีบอัดรูป ก่อนส่ง (maintain aspect ratio)
     async function processImage(file, maxWidth = 1600) {
       return new Promise((resolve, reject)=>{
         const img = new Image();
         img.onload = ()=>{
-          let w = img.naturalWidth;
-          let h = img.naturalHeight;
+          let w = img.width, h = img.height;
           if(w > maxWidth){
-            const ratio = maxWidth / w;
-            w = Math.round(w * ratio);
-            h = Math.round(h * ratio);
+            const r = maxWidth / w;
+            w *= r; h *= r;
           }
           canvas.width = w;
           canvas.height = h;
           ctx.clearRect(0,0,w,h);
           ctx.drawImage(img,0,0,w,h);
-          canvas.toBlob(blob => {
-            if(blob) resolve(blob);
-            else reject(new Error('toBlob failed'));
-          }, 'image/jpeg', 0.85);
+          canvas.toBlob(blob=>resolve(blob),'image/jpeg',0.85);
         };
-        img.onerror = ()=> reject(new Error('image load error'));
+        img.onerror = ()=>reject();
         img.src = URL.createObjectURL(file);
       });
     }
 
-    // ส่งรูปแบบตรง (ไม่แนะนำสำหรับ production)
-    async function sendDirectlyToTelegram(caption) {
-      for (let i = 0; i < photos.length; i++) {
-        const file = photos[i];
-        const blob = await processImage(file);
+    async function sendToTelegram(caption){
+      for(let i=0;i<photos.length;i++){
+        const blob = await processImage(photos[i]);
         const form = new FormData();
         form.append('chat_id', chatId);
-        form.append('photo', blob, `photo_${Date.now()}_${i+1}.jpg`);
+        form.append('photo', blob, `photo${i}.jpg`);
         form.append('caption', caption);
-        // ถ้ากลับ response จะได้ JSON ของ Telegram
-        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-          method: 'POST',
-          body: form
-        });
+        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`,{method:'POST',body:form});
       }
     }
 
-    // สร้าง caption จากข้อมูลในฟอร์ม
     function buildCaption(){
-      const now = new Date().toLocaleString('th-TH', { hour12:false });
+      const now = new Date().toLocaleString('th-TH',{hour12:false});
       const name = fullname.value.trim() || '-';
-      const extra = extraText.value.trim();
-      let text = `📅 ${now}\n👤 ชื่อ: ${name}\n📌 งาน: Patrol`;
-      if(extra) text += `\n📝 ${extra}`;
-      return text;
+      const ex = extra.value.trim();
+      const rep = report.value.trim();
+      let msg = `📅 ${now}\n👤 ชื่อ: ${name}\n📌 งาน: Patrol`;
+      if(ex) msg += `\n📝 ${ex}`;
+      if(rep) msg += `\n📄 รายงาน: ${rep}`;
+      return msg;
     }
 
-    sendBtn.addEventListener('click', async ()=>{
-      statusEl.textContent = '';
-      // validation
-      const name = fullname.value.trim();
-      if(!name){
-        alert('กรุณากรอกชื่อ-นามสกุล (บังคับ)');
-        fullname.focus();
-        return;
-      }
-      if(/\d/.test(name)){
-        alert('ห้ามกรอกตัวเลขในชื่อ-นามสกุล');
-        fullname.focus();
-        return;
-      }
-      if(photos.length === 0){
-        alert('กรุณาเลือกรูปภาพ');
-        return;
-      }
-
+    sendBtn.addEventListener('click', async()=>{
+      if(!fullname.value.trim()){alert('กรุณากรอกชื่อ');return;}
+      if(photos.length===0){alert('กรุณาเลือกรูปภาพ');return;}
       sendBtn.disabled = true;
       sendBtn.textContent = 'กำลังส่ง...';
-      try {
+      try{
         const caption = buildCaption();
-
-        // --- ถ้าต้องการส่งตรงจากหน้าเว็บ (ไม่ปลอดภัยแต่ใช้งานได้ทันที) ---
-        await sendDirectlyToTelegram(caption);
-
-        // --- ถ้าต้องการ ใช้ server-side ให้คอมเมนต์บรรทัดบน แล้วเรียก fetch ไปยัง endpoint แทน ---
-        // await fetch('https://your-server-or-gas/endpoint', { method:'POST', body: JSON.stringify({ caption, files: ... }) });
-
-        statusEl.textContent = '✅ ส่งภาพสำเร็จแล้ว!';
-        // reset form
-        photos = [];
-        imageInput.value = '';
-        fullname.value = '';
-        extraText.value = '';
-        renderPreviewImages();
-        updatePreviewText();
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = '❌ เกิดข้อผิดพลาดในการส่ง กรุณาลองใหม่';
-        alert('เกิดข้อผิดพลาด: ' + (err.message || err));
-      } finally {
-        sendBtn.disabled = false;
-        sendBtn.textContent = 'ส่งภาพเข้า Telegram';
+        await sendToTelegram(caption);
+        statusEl.textContent = '✅ ส่งเรียบร้อย!';
+        fullname.value=''; extra.value=''; report.value='';
+        imageInput.value=''; previewContainer.innerHTML='';
+      }catch(e){
+        console.error(e);
+        statusEl.textContent = '❌ เกิดข้อผิดพลาด';
+      }finally{
+        sendBtn.disabled=false;
+        sendBtn.textContent='ส่งภาพเข้า Telegram';
       }
     });
 
-    // init
-    updatePreviewText();
     updateTimestamp();
-    setInterval(updateTimestamp, 1000);
+    setInterval(updateTimestamp,1000);
   </script>
 </body>
 </html>
