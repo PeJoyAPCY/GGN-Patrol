@@ -246,4 +246,112 @@
         const divEx = document.createElement('div');
         divEx.id = 'previewExtra';
         divEx.className = 'meta-line';
-        divEx.innerHTML = `<span class="
+        divEx.innerHTML = `<span class="icon">📝</span> จุดรักษาการณ์: <strong>${extraVal}</strong>`;
+        document.querySelector('.card').appendChild(divEx);
+      }
+
+      if(reportVal !== "-"){
+        const divRep = document.createElement('div');
+        divRep.id = 'previewReport';
+        divRep.className = 'meta-line';
+        divRep.style.marginTop = '4px';
+        divRep.innerHTML = `<span class="icon">📄</span> รายงาน: <strong>${reportVal}</strong>`;
+        document.querySelector('.card').appendChild(divRep);
+      }
+    }
+
+    fullname.addEventListener('input', updatePreviewText);
+    extra.addEventListener('input', updatePreviewText);
+    report.addEventListener('input', updatePreviewText);
+
+    imageInput.addEventListener('change', e=>{
+      photos = Array.from(e.target.files).filter(f=>{
+        const ext = f.name.split('.').pop().toLowerCase();
+        if(['jpg','jpeg','png'].includes(ext)) return true;
+        return false;
+      });
+      if(photos.length < e.target.files.length) alert('บางไฟล์ถูกละไว้เนื่องจากไม่รองรับ');
+      previewContainer.innerHTML = '';
+      photos.forEach(file=>{
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        previewContainer.appendChild(img);
+      });
+    });
+
+    async function processImage(file, maxWidth = 1600) {
+      return new Promise((resolve, reject)=>{
+        const img = new Image();
+        img.onload = ()=>{
+          let w = img.width, h = img.height;
+          if(w > maxWidth){
+            const r = maxWidth / w;
+            w *= r; h *= r;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          ctx.clearRect(0,0,w,h);
+          ctx.drawImage(img,0,0,w,h);
+          canvas.toBlob(blob=>resolve(blob),'image/jpeg',0.85);
+        };
+        img.onerror = ()=>reject();
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    async function sendToTelegram(caption){
+      for(let i=0;i<photos.length;i++){
+        const blob = await processImage(photos[i]);
+        const form = new FormData();
+        form.append('chat_id', chatId);
+        form.append('photo', blob, `photo${i}.jpg`);
+        form.append('caption', caption);
+        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`,{method:'POST',body:form});
+      }
+    }
+
+    function buildCaption(){
+      const now = new Date().toLocaleString('th-TH',{hour12:false});
+      const name = fullname.value.trim() || '-';
+      const ex = extra.value.trim();
+      const rep = report.value.trim();
+      let msg = `📅 ${now}\n👤 ชื่อ: ${name}\n📌 งาน: Patrol`;
+      if(ex) msg += `\n📝 จุดรักษาการณ์: ${ex}`;
+      if(rep) msg += `\n📄 รายงาน: ${rep}`;
+      return msg;
+    }
+
+    sendBtn.addEventListener('click', async()=>{
+      const nameVal = fullname.value.trim();
+      const extraVal = extra.value.trim();
+      const reportVal = report.value.trim();
+
+      if(!nameVal){ alert('กรุณากรอกชื่อ-นามสกุล'); return; }
+      if(!extraVal){ alert('กรุณากรอกข้อความเพิ่มเติม'); return; }
+      if(!reportVal){ alert('กรุณากรอกรายงาน'); return; }
+      if(photos.length===0){ alert('กรุณาเลือกรูปภาพ'); return; }
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'กำลังส่ง...';
+      try{
+        const caption = buildCaption();
+        await sendToTelegram(caption);
+        statusEl.textContent = `✅ ส่งเรียบร้อย! เวลา: ${new Date().toLocaleTimeString('th-TH')}`;
+        // รีเซ็ต input
+        fullname.value=''; extra.value=''; report.value='';
+        imageInput.value=''; previewContainer.innerHTML='';
+        updatePreviewText();
+      }catch(e){
+        console.error(e);
+        statusEl.textContent = '❌ เกิดข้อผิดพลาด';
+      }finally{
+        sendBtn.disabled=false;
+        sendBtn.textContent='ส่งภาพเข้า Telegram';
+      }
+    });
+
+    updateTimestamp();
+    setInterval(updateTimestamp,1000);
+  </script>
+</body>
+</html>
