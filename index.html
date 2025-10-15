@@ -157,7 +157,7 @@
 
     <div class="form">
       <input id="fullname" type="text" placeholder="ชื่อ-นามสกุล (บังคับกรอก)" autocomplete="name">
-      <textarea id="extra" rows="2" placeholder="ข้อความเพิ่มเติม-จุดรักษาการณ์ (บังคับกรอก)"></textarea>
+      <textarea id="extra" rows="2" placeholder="จุดรักษาการณ์ (บังคับกรอก)"></textarea>
       <textarea id="report" rows="3" placeholder="รายงาน (บังคับกรอก)"></textarea>
 
       <div class="card" aria-live="polite">
@@ -222,7 +222,7 @@
         const divEx = document.createElement('div');
         divEx.id = 'previewExtra';
         divEx.className = 'meta-line';
-        divEx.innerHTML = `<span class="icon">📝</span> ข้อความเพิ่มเติม: <strong>${extraVal}</strong>`;
+        divEx.innerHTML = `<span class="icon">📝</span> จุดรักษาการณ์: <strong>${extraVal}</strong>`;
         document.querySelector('.card').appendChild(divEx);
       }
 
