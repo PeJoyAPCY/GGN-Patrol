@@ -73,6 +73,7 @@
       font-size:15px;
       outline:none;
       resize:vertical;
+      margin-top:8px;
     }
     input[type="text"]::placeholder, textarea::placeholder{color:#a88}
 
@@ -91,6 +92,7 @@
       align-items:center;
       font-size:14px;
       color:#5b2b2b;
+      flex-wrap:wrap;
     }
     .meta-line .icon{font-size:16px;margin-right:6px}
     .preview-images{
@@ -155,8 +157,8 @@
 
     <div class="form">
       <input id="fullname" type="text" placeholder="ชื่อ-นามสกุล (บังคับกรอก)" autocomplete="name">
-      <textarea id="extra" rows="2" placeholder="ข้อความเพิ่มเติม-จุดรักษาการณ์ (ถ้ามี)"></textarea>
-      <textarea id="report" rows="3" placeholder="รายงาน"></textarea>
+      <textarea id="extra" rows="2" placeholder="ข้อความเพิ่มเติม-จุดรักษาการณ์ (บังคับกรอก)"></textarea>
+      <textarea id="report" rows="3" placeholder="รายงาน (บังคับกรอก)"></textarea>
 
       <div class="card" aria-live="polite">
         <div class="meta-line">
@@ -201,13 +203,39 @@
     let photos = [];
 
     function updateTimestamp(){
-      const now = new Date();
-      ts.textContent = now.toLocaleString('th-TH', { hour12:false });
+      ts.textContent = new Date().toLocaleString('th-TH', { hour12:false });
     }
+
     function updatePreviewText(){
       updateTimestamp();
-      previewName.textContent = fullname.value.trim() || "-";
+      const nameVal = fullname.value.trim() || "-";
+      const extraVal = extra.value.trim() || "-";
+      const reportVal = report.value.trim() || "-";
+
+      previewName.textContent = nameVal;
+
+      // ลบ element เก่า
+      document.getElementById('previewExtra')?.remove();
+      document.getElementById('previewReport')?.remove();
+
+      if(extraVal !== "-"){
+        const divEx = document.createElement('div');
+        divEx.id = 'previewExtra';
+        divEx.className = 'meta-line';
+        divEx.innerHTML = `<span class="icon">📝</span> ข้อความเพิ่มเติม: <strong>${extraVal}</strong>`;
+        document.querySelector('.card').appendChild(divEx);
+      }
+
+      if(reportVal !== "-"){
+        const divRep = document.createElement('div');
+        divRep.id = 'previewReport';
+        divRep.className = 'meta-line';
+        divRep.style.marginTop = '4px';
+        divRep.innerHTML = `<span class="icon">📄</span> รายงาน: <strong>${reportVal}</strong>`;
+        document.querySelector('.card').appendChild(divRep);
+      }
     }
+
     fullname.addEventListener('input', updatePreviewText);
     extra.addEventListener('input', updatePreviewText);
     report.addEventListener('input', updatePreviewText);
@@ -216,9 +244,9 @@
       photos = Array.from(e.target.files).filter(f=>{
         const ext = f.name.split('.').pop().toLowerCase();
         if(['jpg','jpeg','png'].includes(ext)) return true;
-        alert('รองรับเฉพาะไฟล์ .jpg .jpeg .png เท่านั้น');
         return false;
       });
+      if(photos.length < e.target.files.length) alert('บางไฟล์ถูกละไว้เนื่องจากไม่รองรับ');
       previewContainer.innerHTML = '';
       photos.forEach(file=>{
         const img = document.createElement('img');
@@ -270,16 +298,25 @@
     }
 
     sendBtn.addEventListener('click', async()=>{
-      if(!fullname.value.trim()){alert('กรุณากรอกชื่อ');return;}
-      if(photos.length===0){alert('กรุณาเลือกรูปภาพ');return;}
+      const nameVal = fullname.value.trim();
+      const extraVal = extra.value.trim();
+      const reportVal = report.value.trim();
+
+      if(!nameVal){ alert('กรุณากรอกชื่อ-นามสกุล'); return; }
+      if(!extraVal){ alert('กรุณากรอกข้อความเพิ่มเติม'); return; }
+      if(!reportVal){ alert('กรุณากรอกรายงาน'); return; }
+      if(photos.length===0){ alert('กรุณาเลือกรูปภาพ'); return; }
+
       sendBtn.disabled = true;
       sendBtn.textContent = 'กำลังส่ง...';
       try{
         const caption = buildCaption();
         await sendToTelegram(caption);
-        statusEl.textContent = '✅ ส่งเรียบร้อย!';
+        statusEl.textContent = `✅ ส่งเรียบร้อย! เวลา: ${new Date().toLocaleTimeString('th-TH')}`;
+        // รีเซ็ต input
         fullname.value=''; extra.value=''; report.value='';
         imageInput.value=''; previewContainer.innerHTML='';
+        updatePreviewText();
       }catch(e){
         console.error(e);
         statusEl.textContent = '❌ เกิดข้อผิดพลาด';
@@ -294,4 +331,3 @@
   </script>
 </body>
 </html>
-
