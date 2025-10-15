@@ -1,262 +1,371 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GGN Patrol</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ระบบ Patrol สายตรวจ - GGN</title>
   <style>
-    body {
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      max-width: 500px;
-      margin: auto;
-      padding: 20px;
-      background-color: #fdf5f7;
-      color: #400000;
+    :root{
+      --bg:#fdf5f7;
+      --accent:#800000;
+      --accent-dark:#6a0000;
+      --muted:#d9b3b3;
+      --card-bg:#fff;
+      --danger:#a00000;
+      --radius:8px;
+      --maxw:700px;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: "Sarabun", "Segoe UI", Tahoma, sans-serif;
+      background: var(--bg);
+      color:#400000;
+      padding:20px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      min-height:100vh;
+    }
+    .wrap{
+      width:100%;
+      max-width:var(--maxw);
+      background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,250,250,0.98));
+      border-radius:12px;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.06);
+      padding:18px;
+      border:1px solid rgba(128,0,0,0.06);
     }
 
-    .logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 10px;
-      background-color: #ddd;
-      border-radius: 50%;
-      overflow: hidden;
+    .top{
+      text-align:center;
+      margin-bottom:6px;
+    }
+    .logo{
+      width:86px;
+      height:86px;
+      margin:0 auto 6px;
+      border-radius:50%;
+      overflow:hidden;
+      border:4px solid rgba(128,0,0,0.08);
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .logo img{width:76px;height:76px;object-fit:contain}
+
+    h1.title{
+      margin:4px 0 8px;
+      font-size:18px;
+      color:var(--accent);
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+    .form-row{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      margin-top:8px;
     }
 
-    .logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+    .field{
+      width:100%;
     }
 
-    .zone-title {
-      margin: 0;
-      font-size: 22px;
-      color: #800000;
-      margin-bottom: 5px;
-      text-align: center;
+    input[type="text"], textarea {
+      width:100%;
+      padding:12px 14px;
+      border-radius:8px;
+      border:1px solid var(--muted);
+      background: #fff;
+      font-size:15px;
+      outline:none;
+      resize:vertical;
+    }
+    input[type="text"]::placeholder, textarea::placeholder{color:#a88}
+
+    .small-note{
+      font-size:13px;color:#6b3f3f;margin-top:6px;
     }
 
-    .system-title {
-      margin: 0;
-      font-size: 18px;
-      color: #800000;
-      margin-bottom: 15px;
-      text-align: center;
-    }
-
-    label {
-      margin-right: 15px;
-      font-weight: bold;
-    }
-
-    input[type="radio"] {
-      margin-right: 5px;
-    }
-
-    input[type="file"],
-    textarea,
-    input[type="text"],
-    button {
-      width: 100%;
-      font-size: 16px;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #800000;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #a00000;
-    }
-
-    #previewText {
+    .card {
+      margin-top:14px;
       background: #fff5f5;
-      border: 1px solid #d9b3b3;
-      padding: 10px;
-      white-space: pre-wrap;
-      font-size: 15px;
-      margin-top: 10px;
+      border:1px solid var(--muted);
+      padding:12px;
+      border-radius:8px;
+      color:#520000;
     }
 
-    #previewContainer {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 10px;
+    .meta-line{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      font-size:14px;
+      color:#5b2b2b;
+    }
+    .meta-line .icon{font-size:16px;margin-right:6px}
+    .preview-images{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      justify-content:flex-start;
+    }
+    .preview-images img{
+      width:120px;height:160px;object-fit:cover;border-radius:6px;border:2px solid var(--accent);
     }
 
-    #previewContainer img {
-      width: 120px;
-      height: 160px;
-      object-fit: cover;
-      border: 2px solid #800000;
-      border-radius: 6px;
+    .file-row{
+      margin-top:12px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .file-row input[type="file"]{
+      flex:1;
+      padding:8px;
+      border-radius:8px;
+      border:1px solid var(--muted);
+      background:#fff;
     }
 
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
-      text-align: center;
-      color: #800000;
+    .btn-send{
+      margin-top:12px;
+      width:100%;
+      padding:12px;
+      background:var(--accent);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow: 0 4px 10px rgba(128,0,0,0.12);
+    }
+    .btn-send:hover{background:var(--accent-dark)}
+
+    #status{
+      margin-top:10px;
+      text-align:center;
+      font-weight:700;
+      color:var(--accent);
     }
 
-    canvas {
-      display: none;
+    @media(max-width:480px){
+      .preview-images img{width:90px;height:120px}
     }
   </style>
 </head>
 <body>
+  <div class="wrap" role="main" aria-labelledby="title">
+    <div class="top">
+      <div class="logo">
+        <img src="https://img2.pic.in.th/pic/logo-ggn.png" alt="GGN logo">
+      </div>
+      <h1 id="title" class="title">📷 ระบบ Patrol สายตรวจ</h1>
+    </div>
 
-  <div class="logo">
-    <img src="https://img2.pic.in.th/pic/logo-ggn.png" alt="โลโก้" />
+    <div class="form">
+      <label class="field">
+        <input id="fullname" type="text" placeholder="ชื่อ-นามสกุล (บังคับกรอก)" autocomplete="name">
+      </label>
+
+      <label class="field">
+        <textarea id="text" rows="2" placeholder="ข้อความเพิ่มเติม-จุดรักษาการณ์ (ถ้ามี)"></textarea>
+      </label>
+
+      <div class="card" aria-live="polite">
+        <div class="meta-line">
+          <span>📅 <span id="ts">-</span></span>
+        </div>
+        <div style="margin-top:8px">
+          <div class="meta-line"><span class="icon">👤</span> ชื่อ: <strong id="previewName">-</strong></div>
+          <div class="meta-line" style="margin-top:6px"><span class="icon">📌</span> งาน: <strong id="previewJob">Patrol</strong></div>
+        </div>
+      </div>
+
+      <div class="file-row">
+        <input id="imageInput" type="file" accept="image/jpeg,image/png" multiple>
+      </div>
+
+      <div class="preview-images" id="previewContainer"></div>
+
+      <button id="sendBtn" class="btn-send">ส่งภาพเข้า Telegram</button>
+
+      <div id="status" role="status"></div>
+    </div>
   </div>
 
-  <h2 class="system-title">📷 ระบบ Patrol สายตรวจ</h2>
-
-  <input type="text" id="fullname" placeholder="ชื่อ-นามสกุล (บังคับกรอก)" />
-  <textarea id="text" rows="2" placeholder="ข้อความเพิ่มเติม-จุดรักษาการณ์ (ถ้ามี)"></textarea>
-  <div id="previewText"></div>
-  <input type="file" id="imageInput" accept="image/jpeg,image/png" multiple />
-  <button id="sendBtn">ส่งภาพเข้า Telegram</button>
-
-  <div id="previewContainer"></div>
-  <div id="status"></div>
-  <canvas id="canvas"></canvas>
+  <canvas id="canvas" style="display:none"></canvas>
 
   <script>
-    const botToken = "8192684646:AAFU_kYwTM6_tG0VshfamEdyCqFxSr45OPk";
-    const chatId = "-1002759045022";
+    // ====================== CONFIG (จากข้อมูลที่คุณให้) ======================
+    const botToken = "7764756651:AAF4G_IFWjNzKoTJj_lpQW3oLANKAZIVnWU";
+    const chatId = "-4929290865";
+    // ====================== END CONFIG ======================================
 
-    const imageInput = document.getElementById("imageInput");
-    const previewContainer = document.getElementById("previewContainer");
-    const previewText = document.getElementById("previewText");
-    const extraText = document.getElementById("text");
-    const fullname = document.getElementById("fullname");
-    const status = document.getElementById("status");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+    const fullname = document.getElementById('fullname');
+    const extraText = document.getElementById('text');
+    const ts = document.getElementById('ts');
+    const previewName = document.getElementById('previewName');
+    const previewJob = document.getElementById('previewJob');
+    const previewContainer = document.getElementById('previewContainer');
+    const imageInput = document.getElementById('imageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusEl = document.getElementById('status');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
 
     let photos = [];
 
-    function getSelectedJob() {
-      const selected = document.querySelector('input[name="jobType"]:checked');
-      return selected ? selected.value : "";
+    function updateTimestamp(){
+      const now = new Date();
+      // แสดงเวลาแบบไทย
+      ts.textContent = now.toLocaleString('th-TH', { hour12:false });
+    }
+    function updatePreviewText(){
+      updateTimestamp();
+      previewName.textContent = fullname.value.trim() || "-";
+      // งานคงที่เป็น Patrol ตามต้นแบบ
+      previewJob.textContent = "Patrol";
     }
 
-    imageInput.addEventListener("change", (e) => {
-      photos = Array.from(e.target.files).filter(file => {
-        if (file.type === "image/heic" || file.name.endsWith(".heic")) {
-          alert("ไม่รองรับไฟล์ .heic กรุณาใช้ .jpg หรือ .png");
+    fullname.addEventListener('input', updatePreviewText);
+    extraText.addEventListener('input', updatePreviewText);
+
+    imageInput.addEventListener('change', e=>{
+      photos = Array.from(e.target.files).filter(f=>{
+        if(f.name && f.name.toLowerCase().endsWith('.heic')){
+          alert('ไม่รองรับไฟล์ .heic กรุณาใช้ .jpg หรือ .png');
           return false;
+        }
+        if(!/^image\/(jpeg|png)$/.test(f.type)){
+          // allow files with missing type but jpg/png extension
+          const ext = f.name.split('.').pop().toLowerCase();
+          if(!['jpg','jpeg','png'].includes(ext)) return false;
         }
         return true;
       });
-      updatePreview();
+      renderPreviewImages();
     });
 
-    function updatePreview() {
-      previewContainer.innerHTML = "";
-      photos.forEach(file => {
-        const img = document.createElement("img");
+    function renderPreviewImages(){
+      previewContainer.innerHTML = '';
+      photos.forEach(file=>{
+        const img = document.createElement('img');
         img.src = URL.createObjectURL(file);
         previewContainer.appendChild(img);
       });
     }
 
-    function updatePreviewText() {
-      const job = getSelectedJob() || "-";
-      const extra = extraText.value.trim();
-      const name = fullname.value.trim() || "-";
-      const nowStr = new Date().toLocaleString("th-TH");
-      previewText.textContent =
-        `📅 ${nowStr}\n👤 ชื่อ: ${name}\n📌 งาน: ${job}${extra ? `\n📝 ${extra}` : ""}`;
-    }
-
-    extraText.addEventListener("input", updatePreviewText);
-    fullname.addEventListener("input", updatePreviewText);
-    document.querySelectorAll('input[name="jobType"]').forEach(el => {
-      el.addEventListener("change", updatePreviewText);
-    });
-
-    async function processImage(file) {
-      return new Promise((resolve) => {
+    // ปรับขนาด/บีบอัดรูป ก่อนส่ง (maintain aspect ratio)
+    async function processImage(file, maxWidth = 1600) {
+      return new Promise((resolve, reject)=>{
         const img = new Image();
-        img.onload = () => {
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
-          canvas.toBlob(blob => resolve(blob), "image/jpeg", 0.9);
+        img.onload = ()=>{
+          let w = img.naturalWidth;
+          let h = img.naturalHeight;
+          if(w > maxWidth){
+            const ratio = maxWidth / w;
+            w = Math.round(w * ratio);
+            h = Math.round(h * ratio);
+          }
+          canvas.width = w;
+          canvas.height = h;
+          ctx.clearRect(0,0,w,h);
+          ctx.drawImage(img,0,0,w,h);
+          canvas.toBlob(blob => {
+            if(blob) resolve(blob);
+            else reject(new Error('toBlob failed'));
+          }, 'image/jpeg', 0.85);
         };
+        img.onerror = ()=> reject(new Error('image load error'));
         img.src = URL.createObjectURL(file);
       });
     }
 
-    async function sendToTelegram() {
-      const name = fullname.value.trim();
-      const job = getSelectedJob();
-      const extraMsg = extraText.value.trim();
-
-      if (!name) {
-        alert("กรุณากรอกชื่อ-นามสกุล");
-        fullname.focus();
-        return;
-      }
-
-      if (/\d/.test(name)) {
-        alert("ห้ามกรอกตัวเลขในชื่อ-นามสกุล");
-        fullname.focus();
-        return;
-      }
-
-      if (!job) {
-        alert("กรุณาเลือกประเภทงาน");
-        return;
-      }
-
-      if (photos.length === 0) {
-        alert("กรุณาเลือกรูปภาพ");
-        return;
-      }
-
-      updatePreviewText();
-      const caption = previewText.textContent;
-
+    // ส่งรูปแบบตรง (ไม่แนะนำสำหรับ production)
+    async function sendDirectlyToTelegram(caption) {
       for (let i = 0; i < photos.length; i++) {
-        const blob = await processImage(photos[i]);
+        const file = photos[i];
+        const blob = await processImage(file);
         const form = new FormData();
-        form.append("chat_id", chatId);
-        form.append("photo", blob, `photo${i + 1}.jpg`);
-        form.append("caption", caption);
-
+        form.append('chat_id', chatId);
+        form.append('photo', blob, `photo_${Date.now()}_${i+1}.jpg`);
+        form.append('caption', caption);
+        // ถ้ากลับ response จะได้ JSON ของ Telegram
         await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-          method: "POST",
+          method: 'POST',
           body: form
         });
       }
-
-      status.textContent = "✅ ส่งภาพสำเร็จแล้ว!";
-      photos = [];
-      updatePreview();
-      previewText.textContent = "";
-      extraText.value = "";
-      fullname.value = "";
-      document.querySelectorAll('input[name="jobType"]').forEach(el => el.checked = false);
     }
 
-    document.getElementById("sendBtn").addEventListener("click", sendToTelegram);
+    // สร้าง caption จากข้อมูลในฟอร์ม
+    function buildCaption(){
+      const now = new Date().toLocaleString('th-TH', { hour12:false });
+      const name = fullname.value.trim() || '-';
+      const extra = extraText.value.trim();
+      let text = `📅 ${now}\n👤 ชื่อ: ${name}\n📌 งาน: Patrol`;
+      if(extra) text += `\n📝 ${extra}`;
+      return text;
+    }
+
+    sendBtn.addEventListener('click', async ()=>{
+      statusEl.textContent = '';
+      // validation
+      const name = fullname.value.trim();
+      if(!name){
+        alert('กรุณากรอกชื่อ-นามสกุล (บังคับ)');
+        fullname.focus();
+        return;
+      }
+      if(/\d/.test(name)){
+        alert('ห้ามกรอกตัวเลขในชื่อ-นามสกุล');
+        fullname.focus();
+        return;
+      }
+      if(photos.length === 0){
+        alert('กรุณาเลือกรูปภาพ');
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'กำลังส่ง...';
+      try {
+        const caption = buildCaption();
+
+        // --- ถ้าต้องการส่งตรงจากหน้าเว็บ (ไม่ปลอดภัยแต่ใช้งานได้ทันที) ---
+        await sendDirectlyToTelegram(caption);
+
+        // --- ถ้าต้องการ ใช้ server-side ให้คอมเมนต์บรรทัดบน แล้วเรียก fetch ไปยัง endpoint แทน ---
+        // await fetch('https://your-server-or-gas/endpoint', { method:'POST', body: JSON.stringify({ caption, files: ... }) });
+
+        statusEl.textContent = '✅ ส่งภาพสำเร็จแล้ว!';
+        // reset form
+        photos = [];
+        imageInput.value = '';
+        fullname.value = '';
+        extraText.value = '';
+        renderPreviewImages();
+        updatePreviewText();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = '❌ เกิดข้อผิดพลาดในการส่ง กรุณาลองใหม่';
+        alert('เกิดข้อผิดพลาด: ' + (err.message || err));
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'ส่งภาพเข้า Telegram';
+      }
+    });
+
+    // init
+    updatePreviewText();
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
   </script>
 </body>
 </html>
