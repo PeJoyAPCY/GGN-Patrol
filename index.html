@@ -66,7 +66,7 @@
       gap:8px;
     }
 
-    input[type="text"], textarea {
+    select, textarea {
       width:100%;
       padding:12px 14px;
       border-radius:var(--radius);
@@ -74,14 +74,17 @@
       background: #fff;
       font-size:15px;
       outline:none;
-      resize:vertical;
       margin-top:10px;
+      color:#003366;
       transition: border-color 0.2s;
     }
-    input[type="text"]:focus, textarea:focus{
+    select:focus, textarea:focus{
       border-color: var(--accent);
     }
-    input[type="text"]::placeholder, textarea::placeholder{color:#6688cc;}
+    select option:first-child {
+      color:#6688cc;
+    }
+    textarea::placeholder{color:#6688cc;}
 
     .card {
       margin-top:16px;
@@ -180,7 +183,18 @@
     </div>
 
     <div class="form">
-      <input id="fullname" type="text" placeholder="ชื่อ-นามสกุล (บังคับกรอก)" autocomplete="name">
+      <select id="fullname" required>
+        <option value="">-- เลือกชื่อ-นามสกุล --</option>
+        <option>สต. ทวัชัย บุญแข็ง</option>
+        <option>สต. สมชาย สันจันตา</option>
+        <option>สต. สิงห์ทอง คำปาลี</option>
+        <option>สต. ธนดล มะโนโฮ้ง</option>
+        <option>สต. ดนุพล ยามดีเลิส</option>
+        <option>สต. คฑาวุธ สวนจันทร์</option>
+        <option>สต. จีรพันธ์ จันทร์แห่ว</option>
+        <option>สต. เจนณรงค์ คนเที่ยง</option>
+      </select>
+
       <textarea id="extra" rows="2" placeholder="จุดรักษาการณ์ (บังคับกรอก)"></textarea>
       <textarea id="report" rows="3" placeholder="รายงาน (บังคับกรอก)"></textarea>
 
@@ -237,8 +251,6 @@
       const reportVal = report.value.trim() || "-";
 
       previewName.textContent = nameVal;
-
-      // ลบ element เก่า
       document.getElementById('previewExtra')?.remove();
       document.getElementById('previewReport')?.remove();
 
@@ -260,15 +272,14 @@
       }
     }
 
-    fullname.addEventListener('input', updatePreviewText);
+    fullname.addEventListener('change', updatePreviewText);
     extra.addEventListener('input', updatePreviewText);
     report.addEventListener('input', updatePreviewText);
 
     imageInput.addEventListener('change', e=>{
       photos = Array.from(e.target.files).filter(f=>{
         const ext = f.name.split('.').pop().toLowerCase();
-        if(['jpg','jpeg','png'].includes(ext)) return true;
-        return false;
+        return ['jpg','jpeg','png'].includes(ext);
       });
       if(photos.length < e.target.files.length) alert('บางไฟล์ถูกละไว้เนื่องจากไม่รองรับ');
       previewContainer.innerHTML = '';
@@ -326,8 +337,8 @@
       const extraVal = extra.value.trim();
       const reportVal = report.value.trim();
 
-      if(!nameVal){ alert('กรุณากรอกชื่อ-นามสกุล'); return; }
-      if(!extraVal){ alert('กรุณากรอกข้อความเพิ่มเติม'); return; }
+      if(!nameVal){ alert('กรุณาเลือกชื่อ-นามสกุล'); return; }
+      if(!extraVal){ alert('กรุณากรอกจุดรักษาการณ์'); return; }
       if(!reportVal){ alert('กรุณากรอกรายงาน'); return; }
       if(photos.length===0){ alert('กรุณาเลือกรูปภาพ'); return; }
 
@@ -337,7 +348,6 @@
         const caption = buildCaption();
         await sendToTelegram(caption);
         statusEl.textContent = `✅ ส่งเรียบร้อย! เวลา: ${new Date().toLocaleTimeString('th-TH')}`;
-        // รีเซ็ต input
         fullname.value=''; extra.value=''; report.value='';
         imageInput.value=''; previewContainer.innerHTML='';
         updatePreviewText();
