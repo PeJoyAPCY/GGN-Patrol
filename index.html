@@ -310,16 +310,30 @@
       });
     }
 
-    async function sendToTelegram(caption){
-      for(let i=0;i<photos.length;i++){
-        const blob = await processImage(photos[i]);
-        const form = new FormData();
-        form.append('chat_id', chatId);
-        form.append('photo', blob, `photo${i}.jpg`);
-        form.append('caption', caption);
-        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`,{method:'POST',body:form});
-      }
-    }
+    // ✅ ส่งหลายรูปพร้อมกันเป็นอัลบั้ม Telegram (sendMediaGroup)
+  async function sendToTelegram(caption) {
+  const form = new FormData();
+  const media = [];
+
+  for (let i = 0; i < photos.length; i++) {
+    const blob = await processImage(photos[i]);
+    const fieldName = `photo${i}`;
+    form.append(fieldName, blob, `photo${i}.jpg`);
+    media.push({
+      type: "photo",
+      media: `attach://${fieldName}`,
+      caption: i === 0 ? caption : undefined // ใส่ caption แค่รูปแรก
+    });
+  }
+
+  form.append("chat_id", chatId);
+  form.append("media", JSON.stringify(media));
+
+  await fetch(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
+    method: "POST",
+    body: form
+  });
+}
 
     function buildCaption(){
       const now = new Date().toLocaleString('th-TH',{hour12:false});
